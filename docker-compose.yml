@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  torproxy:
+    image: dperson/torproxy
+    expose:
+      - 5353
+      - 9040
+      - 8118
+      - 9050
+    networks:
+      - tor
+
+  kali:
+    environment: 
+      PG_SERVICE: postgresql@13-main
+    container_name: kali
+    build:
+      context: .
+    depends_on:
+    - torproxy
+    command: ["/bin/bash", "-c", "sleep 10 && /tmp/route_tor.sh && sleep 99999"]
+    volumes:
+      - ${PWD}/route_tor.sh:/tmp/route_tor.sh
+    cap_add:
+      - NET_ADMIN
+    network_mode: "service:torproxy"
+
+networks:
+  tor:
+
+volumes:
+  pg_data:
+    driver: local
